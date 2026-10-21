@@ -33,7 +33,7 @@ def login(info:Dict[str,str], req:Request):
     # 아이디와 비번을 가지고 데이터 조회한다.
     # 데이터가 조회(count = 1)일 경우 존재하는 아이디로 판단
     # nick(별명)의 경우 로그인 시 환영 문구에 넣기위해 가져옴.
-    sql = text("SELECT COUNT(*) AS cnt, nick FROM user WHERE id = :id AND pw = SHA2(:pw, 256)")
+    sql = text("SELECT COUNT(*) AS cnt, id FROM user WHERE id = :id AND pw = SHA2(:pw, 256)")
 
     try:
         result = conn.execute(sql, {"id":info['id'], "pw":info['pw']}).mappings().fetchone()
@@ -43,7 +43,7 @@ def login(info:Dict[str,str], req:Request):
 
         if check_cnt >= 1:
             token = get_token({"id":info["id"], "ip":req.client.host})
-            json.update({'success': 'Y', 'token':token, 'message':f'{result.nick}님 환영합니다!'})
+            json.update({'success': 'Y', 'token':token, 'message':f'{result.id}님 환영합니다!'})
         else :
             json.update({'success': 'N', 'token': '', 'message': f'아이디 또는 비밀번호를 확인해주세요.'})
     except Exception as e:

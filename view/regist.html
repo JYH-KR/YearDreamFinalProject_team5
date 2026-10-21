@@ -28,12 +28,12 @@
             <th colspan="2"><input type="password" name="chk_pw" maxlength="20"/></th>
         </tr>
          <tr>
-            <th>닉네임</th>
-            <th><input type="text" name="nick" maxlength="15"/></th>
-            <th>
-                <input type="button" onclick="nick_chk()" value="중복체크">
-                <input type="hidden" id="nick_chk_yn" name="nick_chk_yn" value="">
-            </th>
+            <th>이름</th>
+            <th colspan="2"><input type="text" name="name" maxlength="30"/></th>
+        </tr>
+         <tr>
+            <th>전화번호</th>
+            <th colspan="2"><input type="text" name="phone" maxlength="15"/></th>
         </tr>
         <tr>
             <th>메일주소</th>
@@ -78,33 +78,6 @@
         }
     }
 
-    // 닉네임 중복 체크
-    async function nick_chk(){
-        let param = {
-            'nick' : $('input[name="nick"]').val()
-        };
-
-        let{data} = await axios.post('/nickChk', param);
-
-        /*
-           닉네임 중복 체크 값에 따라서 nick_chk_yn 값을 넣는다.
-           해당 값의 여부는 후에 가입하기 전에 중복 체크를 했는지 확인하는 용도.
-           실패 또는 오류 일때 비우는 이유는 처음에 사용가능한 아이디를 사용했다가
-         */
-        let chk_nick = $('input[name="nick"]').val();
-
-        if(data.chkYN == 'Y'){
-            alert('사용 가능한 닉네임 입니다.');
-            $('#nick_chk_yn').val(chk_nick);
-        }else if(data.chkYN == 'N'){
-            alert('중복된 닉네임 입니다.');
-            $('#nick_chk_yn').val('');
-        }else{
-            alert('중복체크에 실패하였습니다.');
-            $('#nick_chk_yn').val('');
-        }
-    }
-
     //가입하기
     async function save(){
         $('#loading').css('display', 'flex');   // 로딩 시작
@@ -116,13 +89,15 @@
 
          let id = $('input[name="id"]').val().trim();
          let pw = $('input[name="pw"]').val().trim();
-         let nick = $('input[name="nick"]').val().trim();
+         let name = $('input[name="name"]').val().trim();
+         let phone = $('input[name="phone"]').val().trim();
          let email = $('input[name="email"]').val().trim();
 
          let param = {
              'id' : id,
              'pw' : pw,
-             'nick' : nick,
+             'name' : name,
+             'phone' : phone,
              'email' : email
         };
 
@@ -151,8 +126,9 @@
         let pw = $('input[name="pw"]').val().trim();
         let chk_pw = $('input[name="chk_pw"]').val().trim();
 
-        let nick = $('input[name="nick"]').val().trim();
-        let chk_nick = $('input[name="nick_chk_yn"]').val().trim();
+        let name = $('input[name="name"]').val().trim();
+
+        let phone = $('input[name="phone"]').val().trim();
 
         let email = $('input[name="email"]').val().trim();
 
@@ -172,8 +148,13 @@
             return false;
         }
 
-        if(nick == ''){
-            alert("닉네임을 입력해 주세요.");
+        if(name == ''){
+            alert("이름을 입력해 주세요.");
+            return false;
+        }
+
+        if(phone == ''){
+            alert("전화번호를 입력해 주세요.");
             return false;
         }
 
@@ -185,11 +166,6 @@
         // 중복체크 했는지 여부(아아디, 닉네임)
         if(chk_id == '' || chk_id != id){
             alert("아이디 중복체크를 해주세요.")
-            return false;
-        }
-
-        if(nick == '' || nick != chk_nick){
-            alert("닉네임 중복체크를 해주세요.")
             return false;
         }
 

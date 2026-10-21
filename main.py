@@ -85,37 +85,6 @@ def id_chk(info:Dict[str,str], req:Request):
 
     return json
 
-# 닉네임 중복 체크
-@app.post("/nickChk")
-def nick_chk(info:Dict[str,str], req:Request):
-    json = {'chkYN':''}
-
-    conn = get_conn()
-
-    # 아이디를 개수를 체크하여 중복 아이디가 있는지 확인한다.
-    sql = text("SELECT COUNT(*) AS cnt FROM user WHERE nick = :nick")
-    try:
-        result = conn.execute(sql, {"nick":info['nick']}).mappings().fetchone()
-        print(f'----  result : {result.cnt}')
-        check_cnt = int(result.cnt)
-
-        # 혹시 몰라서 1개 이상으로 처리함.
-        # 1개 이상 검증 됐을 시 'N' 사용 불가능한 id라고 전달.
-        if check_cnt >= 1:
-            json.update({'chkYN' : 'N'})
-        # 그 외에는 사용 가능한 id라고 'Y' 전달.
-        else :
-            json.update({'chkYN' : 'Y'})
-
-    except Exception as e:
-        # 에러 일 경우는 E코드로 줘서 화면단에서 에러발생했다고 처리하려고 함.
-        json.update({'chkYN' : 'E'})
-
-    finally:
-        conn.close()
-
-    return json
-
 # 가입하기
 @app.post("/registSave")
 def regist_save(info:Dict[str,str], req:Request):
@@ -124,10 +93,10 @@ def regist_save(info:Dict[str,str], req:Request):
     conn = get_conn()
 
     # 아이디를 개수를 체크하여 중복 아이디가 있는지 확인한다.
-    sql = text("INSERT INTO user(id, pw, nick, email)values(:id, SHA2(:pw, 256), :nick, :email)")
+    sql = text("INSERT INTO user(id, pw, name, phone, email)values(:id, SHA2(:pw, 256), :name, :phone, :email)")
 
     try:
-        result = conn.execute(sql, {"id":info['id'], "pw":info['pw'], "nick":info['nick'], "email":info['email']})
+        result = conn.execute(sql, {"id":info['id'], "pw":info['pw'], "name":info['name'], "phone":info['phone'], "email":info['email']})
         print(f'----  result : {result.rowcount}')
 
         conn.commit()

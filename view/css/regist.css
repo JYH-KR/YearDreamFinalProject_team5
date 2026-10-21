@@ -1,0 +1,121 @@
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f3f5f9;
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: #1f2937;
+}
+
+h1 {
+    margin: 0 0 20px;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.regist-table {
+    width: 460px;
+    max-width: calc(100% - 32px);
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+    border-collapse: separate;
+    border-spacing: 0 12px;
+    padding: 16px 28px 24px;
+}
+
+.regist-table th {
+    font-weight: 500;
+    padding: 0 4px;
+    vertical-align: middle;
+}
+
+.regist-table tr > th:first-child:not([colspan]) {
+    width: 90px;
+    text-align: left;
+    font-size: 14px;
+    color: #4b5563;
+    white-space: nowrap;
+}
+
+.regist-table input[type="text"],
+.regist-table input[type="password"] {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fafbfc;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+}
+
+.regist-table input[type="text"]:focus,
+.regist-table input[type="password"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.regist-table input[type="button"] {
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+}
+
+.regist-table tr > th:last-child:not([colspan]) {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.regist-table tr > th:last-child:not([colspan]) input[type="button"] {
+    border: 1px solid #3b82f6;
+    background: #fff;
+    color: #3b82f6;
+}
+
+.regist-table tr > th:last-child:not([colspan]) input[type="button"]:hover {
+    background: #eff6ff;
+}
+
+.regist-table tr:last-child th {
+    padding-top: 10px;
+    text-align: center;
+}
+
+.regist-table tr:last-child input[type="button"] {
+    width: 48%;
+    height: 44px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.regist-table tr:last-child input[type="button"]:first-child {
+    border: none;
+    background: #3b82f6;
+    color: #fff;
+}
+
+.regist-table tr:last-child input[type="button"]:first-child:hover {
+    background: #2563eb;
+}
+
+.regist-table tr:last-child input[type="button"]:last-child {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #4b5563;
+}
+
+.regist-table tr:last-child input[type="button"]:last-child:hover {
+    background: #f3f4f6;
+}

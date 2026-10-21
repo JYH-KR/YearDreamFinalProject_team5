@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="css/regist.css">
+    <link rel="stylesheet" href="css/loading.css">
+</head>
+<body>
+     <h1>회원가입</h1>
+    <table class="regist-table">
+        <tr>
+            <th>ID</th>
+            <th><input type="text" name="id" maxlength="20"/></th>
+            <th>
+                <input type="button" onclick="id_chk()" value="중복체크">
+                <input type="hidden" id="id_chk_yn" name="id_chk_yn" value="">
+            </th>
+        </tr>
+        <tr>
+            <th>비밀번호</th>
+            <th colspan="2"><input type="password" name="pw" maxlength="20"/></th>
+        </tr>
+        <tr>
+            <th>비밀번호 확인</th>
+            <th colspan="2"><input type="password" name="chk_pw" maxlength="20"/></th>
+        </tr>
+         <tr>
+            <th>닉네임</th>
+            <th><input type="text" name="nick" maxlength="15"/></th>
+            <th>
+                <input type="button" onclick="nick_chk()" value="중복체크">
+                <input type="hidden" id="nick_chk_yn" name="nick_chk_yn" value="">
+            </th>
+        </tr>
+        <tr>
+            <th>메일주소</th>
+            <th colspan="2"><input type="text" name="email" maxlength="50"/></th>
+        </tr>
+        <tr>
+            <th colspan="3">
+                <input type="button" value="가입하기" onclick="save()">
+                <input type="button" value="돌아가기" onclick=location.href='/'>
+            </th>
+        </tr>
+    </table>
+</body>
+
+<script>
+
+    // 아이디 중복 체크
+    async function id_chk(){
+        let param = {
+            'id' : $('input[name="id"]').val()
+        };
+
+        let{data} = await axios.post('/idChk', param);
+
+        /*
+           아이디 중복 체크 값에 따라서 id_chk_yn에 값을 넣는다.
+           해당 값의 여부는 후에 가입하기 전에 중복 체크를 했는지 확인하는 용도.
+           실패 또는 오류 일때 비우는 이유는 처음에 사용가능한 아이디를 사용했다가
+         */
+
+        let chk_id = $('input[name="id"]').val();
+
+        if(data.chkYN == 'Y'){
+            alert('사용 가능한 아이디 입니다.');
+            $('#id_chk_yn').val(chk_id);
+        }else if(data.chkYN == 'N'){
+            alert('중복된 아이디 입니다.');
+            $('#id_chk_yn').val('');
+        }else{
+            alert('중복체크에 실패하였습니다.');
+            $('#id_chk_yn').val('');
+        }
+    }
+
+    // 닉네임 중복 체크
+    async function nick_chk(){
+        let param = {
+            'nick' : $('input[name="nick"]').val()
+        };
+
+        let{data} = await axios.post('/nickChk', param);
+
+        /*
+           닉네임 중복 체크 값에 따라서 nick_chk_yn 값을 넣는다.
+           해당 값의 여부는 후에 가입하기 전에 중복 체크를 했는지 확인하는 용도.
+           실패 또는 오류 일때 비우는 이유는 처음에 사용가능한 아이디를 사용했다가
+         */
+        let chk_nick = $('input[name="nick"]').val();
+
+        if(data.chkYN == 'Y'){
+            alert('사용 가능한 닉네임 입니다.');
+            $('#nick_chk_yn').val(chk_nick);
+        }else if(data.chkYN == 'N'){
+            alert('중복된 닉네임 입니다.');
+            $('#nick_chk_yn').val('');
+        }else{
+            alert('중복체크에 실패하였습니다.');
+            $('#nick_chk_yn').val('');
+        }
+    }
+
+    //가입하기
+    async function save(){
+        $('#loading').css('display', 'flex');   // 로딩 시작
+
+        // 가입하기 전에 입력항목 체크(필수값, 중복체크 등)
+        if(!vaildation())return false;
+
+        console.log("save start");
+
+         let id = $('input[name="id"]').val().trim();
+         let pw = $('input[name="pw"]').val().trim();
+         let nick = $('input[name="nick"]').val().trim();
+         let email = $('input[name="email"]').val().trim();
+
+         let param = {
+             'id' : id,
+             'pw' : pw,
+             'nick' : nick,
+             'email' : email
+        };
+
+        let{data} = await axios.post('/registSave', param);
+        console.log(data)
+
+        let text = data.message;
+
+        $('#loading').hide();
+
+        if(data.success == 'Y'){
+            alert(text);
+            location.href = '/'
+        }else{
+            alert(text);
+            return false;
+        }
+
+
+    }
+
+    function vaildation(){
+        let id = $('input[name="id"]').val().trim();
+        let chk_id = $('input[name="id_chk_yn"]').val().trim();
+
+        let pw = $('input[name="pw"]').val().trim();
+        let chk_pw = $('input[name="chk_pw"]').val().trim();
+
+        let nick = $('input[name="nick"]').val().trim();
+        let chk_nick = $('input[name="nick_chk_yn"]').val().trim();
+
+        let email = $('input[name="email"]').val().trim();
+
+        // 암호 정규화
+        let reg = /^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,}$/;
+        // 이메일 정규화
+        let emailReg = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
+
+        // 필수 데이터 입력 여부 확인.
+        if(id == ''){
+            alert("아이디를 입력해 주세요.");
+            return false;
+        }
+
+        if(pw == ''){
+            alert("패스워드를 입력해 주세요.");
+            return false;
+        }
+
+        if(nick == ''){
+            alert("닉네임을 입력해 주세요.");
+            return false;
+        }
+
+        if(email == ''){
+            alert("이메일을 입력해 주세요.");
+            return false;
+        }
+
+        // 중복체크 했는지 여부(아아디, 닉네임)
+        if(chk_id == '' || chk_id != id){
+            alert("아이디 중복체크를 해주세요.")
+            return false;
+        }
+
+        if(nick == '' || nick != chk_nick){
+            alert("닉네임 중복체크를 해주세요.")
+            return false;
+        }
+
+        // 비밀번호 정규화
+        if(!reg.test(pw)){
+            alert('비밀번호는 영문, 숫자, 특수문자(!@#$%^*+=-)를 포함한 8자 이상으로 입력해주세요.');
+            return false;
+        }
+
+        // 비밀번호와 확인 비밀번호가 다를 경우
+        if(pw != chk_pw){
+            alert("비밀번호와 비밀번호 확인 값이 다릅니다.");
+            return false;
+        }
+
+        // 비밀번호와 확인 비밀번호가 다를 경우
+        if(pw != chk_pw){
+            alert("비밀번호와 비밀번호 확인 값이 다릅니다.");
+            return false;
+        }
+
+        // 이메일 형식 확인.
+        if(!emailReg.test(email)){
+            alert("이메일 형식이 맞지 않습니다.");
+            return false;
+        }
+
+        return true;
+    }
+</script>
+
+<div id="loading">
+    <div class="spinner"></div>
+</div>
+</html>

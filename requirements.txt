@@ -4,6 +4,7 @@ pymysql
 sqlalchemy
 python-dotenv
 pandas
+httpx
 
 # 암호화
 bcrypt

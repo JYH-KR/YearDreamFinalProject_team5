@@ -1,0 +1,10 @@
+uvicorn
+fastapi
+pymysql
+sqlalchemy
+python-dotenv
+pandas
+
+# 암호화
+bcrypt
+pyjwt

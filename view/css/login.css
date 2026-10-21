@@ -1,0 +1,116 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "Pretendard", -apple-system, "Malgun Gothic", sans-serif;
+    color: #1d2a26;
+    background: linear-gradient(180deg, #e8f5ef, #f7faf9);
+}
+
+/* 제목 */
+body > h1 {
+    margin: 0 0 20px;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* 테이블을 카드처럼 */
+.login-table {
+    width: 100%;
+    max-width: 400px;
+    padding: 22px 18px 14px;
+    background: #fff;
+    border-radius: 20px;
+    border-collapse: separate;
+    border-spacing: 0;
+    box-shadow: 0 10px 30px rgba(31, 122, 92, 0.10);
+}
+
+.login-table th {
+    padding: 6px 4px;
+    font-weight: normal;
+    text-align: left;
+    vertical-align: middle;
+}
+
+/* "ID", "비밀번호" 라벨 칸 */
+.login-table tr:nth-child(-n+2) th:first-child {
+    width: 72px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* 입력창 */
+.login-table input[type="text"],
+.login-table input[type="password"] {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    font-size: 16px;            /* 16px 미만이면 아이폰에서 자동 확대됨 */
+    font-family: inherit;
+    border: 1.5px solid #d5e0dc;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+.login-table input[type="text"]:focus,
+.login-table input[type="password"]:focus {
+    border-color: #1f7a5c;
+    box-shadow: 0 0 0 4px rgba(31, 122, 92, 0.12);
+}
+
+/* 로그인 버튼 칸 (rowspan="2") */
+.login-table th[rowspan] {
+    width: 84px;
+    padding-left: 8px;
+}
+.login-table input[type="submit"] {
+    width: 100%;
+    height: 104px;
+    border: none;
+    border-radius: 12px;
+    background: #1f7a5c;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .15s, transform .05s;
+}
+.login-table input[type="submit"]:hover { background: #17604a; }
+.login-table input[type="submit"]:active { transform: scale(0.97); }
+
+/* 회원가입 / 아이디·비번찾기 줄 */
+.login-table tr:last-child th {
+    padding-top: 14px;
+    text-align: center;
+}
+.login-table input[type="button"] {
+    padding: 4px 10px;
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-family: inherit;
+    color: #6b7a75;
+    cursor: pointer;
+}
+.login-table input[type="button"]:hover { color: #1f7a5c; }
+.login-table input[type="button"] + input[type="button"] {
+    border-left: 1px solid #d5e0dc;   /* 버튼 사이 구분선 */
+}
+
+/* 아주 작은 폰 */
+@media (max-width: 340px) {
+    .login-table tr:nth-child(-n+2) th:first-child { width: 60px; }
+    .login-table th[rowspan] { width: 72px; }
+}

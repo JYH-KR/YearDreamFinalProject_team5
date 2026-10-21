@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 페이지</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/loading.css">
+</head>
+<body>
+    <h1>로그인 페이지</h1>
+    <table class="login-table">
+        <tr>
+            <th>ID</th>
+            <th><input type="text" name="id"/></th>
+            <th rowspan="2">
+                <input type="submit" value="로그인" onclick="login()"/>
+            </th>
+        </tr>
+        <tr>
+            <th>비밀번호</th>
+            <th><input type="password" name="pw"/></th>
+        </tr>
+        <tr>
+            <th colspan="3">
+                <input type="button" value="회원가입" onclick="regist()">
+                <input type="button" value="아이디/비번찾기">
+            </th>
+        </tr>
+    </table>
+</body>
+
+<script>
+    sessionStorage.clear();
+    async function login(){
+        $('#loading').css('display', 'flex');   // 로딩 시작
+
+        let param = {
+            'id' : $('input[name="id"]').val(),
+            'pw' : $('input[name="pw"]').val()
+        };
+        let{data} = await axios.post('/login', param);
+        console.log(data)
+
+        let text = data.message;
+
+        $('#loading').hide();
+
+        if(data.success == 'Y'){
+            alert(text);
+            sessionStorage.setItem("id", param.id)
+            sessionStorage.setItem("token", data.token);
+            location.href = '/view/main.html'
+        }else{
+            alert(text);
+            return false;
+        }
+    }
+
+    function regist(){
+        location.href='/view/regist.html'
+    }
+
+</script>
+
+<div id="loading">
+    <div class="spinner"></div>
+</div>
+
+</html>

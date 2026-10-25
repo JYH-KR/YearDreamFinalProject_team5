@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>안전 귀갓길 - CCTV 및 경로 안내</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <!-- 💡 Leaflet Routing Machine CSS 추가 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+
+  <style>
+    #map {
+      height: 600px;
+      width: 100%;
+    }
+    .info-box {
+      margin: 10px 0;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>영등포 안전 귀갓길 (CCTV 위치)</h2>
+
+  <div class="info-box">
+    <button onclick="showLocation()">현재 위치</button>
+    <span>👉 '현재 위치'를 누른 후, 지도를 클릭하면 목적지까지의 안전 경로가 그려집니다. (영등포 외 지역은 영등포역 기준)</span>
+  </div>
+
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- PapaParse JS -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <!-- 💡 Leaflet Routing Machine JS 추가 -->
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+  <script>
+    // 영등포 주변을 중심으로 지도 생성
+    const map = L.map("map").setView(
+      [37.5152, 126.9001], 15
+    );
+
+    // 지도 타일 표시
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        attribution: "&copy; OpenStreetMap contributors"
+      }
+    ).addTo(map);
+
+    // CCTV CSV 파일 읽어 지도에 표시
+    function loadCCTV(file) {
+      let count = 0;
+
+      Papa.parse(file, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+
+        complete: function(result) {
+          if (result.data.length === 0) {
+            console.log("CSV 파일에 데이터가 없습니다.");
+            return;
+          }
+
+          const rawKeys = Object.keys(result.data[0]);
+          console.log("원본 컬럼 키들:", rawKeys);
+
+          result.data.forEach(function(row, index) {
+            const cleanRow = {};
+            Object.keys(row).forEach(key => {
+              const cleanKey = key.replace(/^\uFEFF/, '').trim();
+              cleanRow[cleanKey] = row[key];
+            });
+
+            const xKey = Object.keys(cleanRow).find(k => k.includes('X좌표'));
+            const yKey = Object.keys(cleanRow).find(k => k.includes('Y좌표'));
+
+            if (!xKey || !yKey) {
+              if (index === 0) console.log("X좌표 또는 Y좌표 키를 찾지 못했습니다.");
+              return;
+            }
+
+            const lat = Number(cleanRow[xKey]);
+            const lon = Number(cleanRow[yKey]);
+
+            if (index === 0) {
+              console.log("매핑된 위도(lat):", lat, "/ 매핑된 경도(lon):", lon);
+            }
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+              return;
+            }
+
+            count++;
+
+            L.circleMarker([lat, lon], {
+              radius: 3,
+              color: "blue",
+              fillOpacity: 0.8
+            })
+            .bindPopup("CCTV")
+            .addTo(map);
+          });
+
+          console.log("🔥 최종 지도에 그려진 마커 개수:", count);
+        },
+
+        error: function(error) {
+          console.error("파일 에러:", error);
+        }
+      });
+    }
+
+    // 파일 경로 실행
+    loadCCTV("data/cctv.csv");
+
+    // 💡 경로 안내 및 위치 판별을 위한 변수 및 설정
+    let currentMarker = null;
+    let currentLatLng = null;      
+    let routingControl = null;     
+
+    // 영등포구 대략적인 Bounding Box (위도/경도 범위)
+    const YEOUNGDONGPO_BOUNDS = {
+      minLat: 37.47,
+      maxLat: 37.54,
+      minLon: 126.88,
+      maxLon: 126.95
+    };
+
+    // 영등포역 기준 좌표
+    const YEOUNGDONGPO_STATION = { lat: 37.5156, lon: 126.9078 };
+
+    // 현재 위치 확인 및 영등포구 내부 여부 판단
+    function showLocation() {
+      if (!navigator.geolocation) {
+        alert("현재 위치 기능을 지원하지 않습니다. 영등포역을 기준으로 설정합니다.");
+        setFallbackToYeongdeungpo();
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          // 현재 위치가 영등포구 범위 안에 있는지 확인
+          const isInsideYeongdeungpo = (
+            lat >= YEOUNGDONGPO_BOUNDS.minLat &&
+            lat <= YEOUNGDONGPO_BOUNDS.maxLat &&
+            lon >= YEOUNGDONGPO_BOUNDS.minLon &&
+            lon <= YEOUNGDONGPO_BOUNDS.maxLon
+          );
+
+          if (isInsideYeongdeungpo) {
+            currentLatLng = L.latLng(lat, lon);
+            updateStartMarker(currentLatLng, "현재 위치 (영등포)");
+          } else {
+            alert("현재 위치가 영등포 지역을 벗어나 있어, '영등포역'을 출발지로 설정합니다.");
+            setFallbackToYeongdeungpo();
+          }
+        },
+        function(error) {
+          console.warn("GPS 수신 실패, 영등포역으로 대체합니다.", error);
+          alert("현재 위치를 가져오지 못해 '영등포역'이 기준으로 설정됩니다.");
+          setFallbackToYeongdeungpo();
+        }
+      );
+    }
+
+    // 영등포역을 기본 출발지로 세팅하는 함수
+    function setFallbackToYeongdeungpo() {
+      currentLatLng = L.latLng(YEOUNGDONGPO_STATION.lat, YEOUNGDONGPO_STATION.lon);
+      updateStartMarker(currentLatLng, "영등포역 (기준 출발지)");
+    }
+
+    // 마커 생성 및 지도 이동 공통 함수
+    function updateStartMarker(latLng, popupText) {
+      if (currentMarker) {
+        map.removeLayer(currentMarker);
+      }
+
+      currentMarker = L.marker(latLng)
+        .addTo(map)
+        .bindPopup(popupText)
+        .openPopup();
+
+      map.setView(latLng, 17);
+    }
+
+    // 💡 지도 클릭 시 목적지 설정 및 경로 안내 실행 기능
+    map.on('click', function(e) {
+      if (!currentLatLng) {
+        alert("먼저 상단의 '현재 위치' 버튼을 눌러 출발지를 잡아주세요!");
+        return;
+      }
+
+      const destinationLatLng = e.latlng; // 클릭한 지점 (목적지)
+
+      // 이미 그려진 경로가 있다면 삭제 후 새로 그리기
+      if (routingControl) {
+        map.removeControl(routingControl);
+      }
+
+      // Leaflet Routing Machine 실행
+      routingControl = L.Routing.control({
+        waypoints: [
+          currentLatLng,      // 출발지 (현재 위치 또는 영등포역)
+          destinationLatLng   // 목적지 (클릭한 곳)
+        ],
+        routeWhileDragging: false,
+        lineOptions: {
+          styles: [{ color: '#ff4757', weight: 6, opacity: 0.8 }] // 경로 색상 (빨간 선)
+        }
+      }).addTo(map);
+    });
+  </script>
+</body>
+</html>

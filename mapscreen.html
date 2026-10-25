@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>안전 귀갓길 - CCTV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <style>
+    #map {
+      height: 600px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h2>영등포 안전 귀갓길 (CCTV 위치)</h2>
+
+  <button onclick="showLocation()">현재 위치</button>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <script>
+    // 영등포 주변을 중심으로 지도 생성
+    const map = L.map("map").setView(
+      [37.5152, 126.9001], 15
+    );
+
+    // 지도 타일 표시
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        attribution: "&copy; OpenStreetMap contributors"
+      }
+    ).addTo(map);
+
+    // CCTV CSV 파일 읽어 지도에 표시
+    function loadCCTV(file) {
+      // 💡 함수 시작 부분에 count 변수 명확히 선언!
+      let count = 0;
+
+      Papa.parse(file, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+
+        complete: function(result) {
+          if (result.data.length === 0) {
+            console.log("CSV 파일에 데이터가 없습니다.");
+            return;
+          }
+
+          // 첫 번째 행의 원본 컬럼 키 확인
+          const rawKeys = Object.keys(result.data[0]);
+          console.log("원본 컬럼 키들:", rawKeys);
+
+          result.data.forEach(function(row, index) {
+            // 키의 앞뒤 공백 및 숨은 문자 제거
+            const cleanRow = {};
+            Object.keys(row).forEach(key => {
+              const cleanKey = key.replace(/^\uFEFF/, '').trim();
+              cleanRow[cleanKey] = row[key];
+            });
+
+            // X좌표, Y좌표 키 찾기
+            const xKey = Object.keys(cleanRow).find(k => k.includes('X좌표'));
+            const yKey = Object.keys(cleanRow).find(k => k.includes('Y좌표'));
+
+            if (!xKey || !yKey) {
+              if (index === 0) console.log("X좌표 또는 Y좌표 키를 찾지 못했습니다.");
+              return;
+            }
+
+            // X좌표에 위도(lat), Y좌표에 경도(lon) 매핑
+            const lat = Number(cleanRow[xKey]);
+            const lon = Number(cleanRow[yKey]);
+
+            if (index === 0) {
+              console.log("매핑된 위도(lat):", lat, "/ 매핑된 경도(lon):", lon);
+            }
+
+            // 범위 검증
+            if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+              return;
+            }
+
+            count++; // 여기서 정상적으로 카운트 증가
+
+            // 지도에 마커 추가
+            L.circleMarker([lat, lon], {
+              radius: 3,
+              color: "blue",
+              fillOpacity: 0.8
+            })
+            .bindPopup("CCTV")
+            .addTo(map);
+          });
+
+          console.log("🔥 최종 지도에 그려진 마커 개수:", count);
+        },
+
+        error: function(error) {
+          console.error("파일 에러:", error);
+        }
+      });
+    }
+
+    // 파일 경로 실행
+    loadCCTV("data/cctv.csv");
+
+    // 현재 위치 표시 기능
+    let currentMarker = null;
+
+    function showLocation() {
+      if (!navigator.geolocation) {
+        alert("현재 위치 기능을 지원하지 않습니다.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          if (currentMarker) {
+            map.removeLayer(currentMarker);
+          }
+
+          currentMarker = L.marker([lat, lon])
+            .addTo(map)
+            .bindPopup("현재 위치")
+            .openPopup();
+
+          map.setView([lat, lon], 17);
+        },
+        function(error) {
+          alert("위치를 확인하지 못했습니다. 위치 권한을 확인해 주세요.");
+        }
+      );
+    }
+  </script>
+</body>
+</html>
